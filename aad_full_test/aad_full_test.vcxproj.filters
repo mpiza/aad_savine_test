@@ -18,5 +18,46 @@
     <ClCompile Include="aad_full_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="aad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="aadTape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aadNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aadNumber.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocklist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gaussian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="black_scholes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dupireBarrier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="interp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrg32k3a.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
