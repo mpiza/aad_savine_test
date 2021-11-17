@@ -35,6 +35,8 @@ constexpr size_t BLOCKSIZE = 64;		//	Number of nodes
 constexpr size_t ADJSIZE = 128;		//	Number of adjoints
 constexpr size_t DATASIZE = 516;		//	Data in bytes
 
+
+
 class Tape
 {
 	//	Working with multiple results / adjoints?
@@ -59,16 +61,40 @@ class Tape
 
 public:
 
+
+	int tape_print_number_node(const Node* myNode) {
+
+		cout << " node: n = " << myNode->n;
+		cout << " node: nAdj = " << myNode->numAdj;
+
+		cout << " node: myAdjoint = " << myNode->mAdjoint;
+
+		if (myNode->n > 0) {
+			cout << "pDerv[0] : " << myNode->pDerivatives[0] << endl;
+
+
+			cout << " pAdjPtr[0] : " << myNode->pAdjPtrs[0];
+			if (myNode->n > 1) {
+				cout << " pDerv[1] : " << myNode->pDerivatives[1];
+				cout << " pAdjPtr[1] : " << myNode->pAdjPtrs[1] << endl;
+			}
+
+
+		}
+
+		return 0;
+	}
+
 	//  Build note in place and return a pointer
 	//	N : number of childs (arguments)
 	template <size_t N>
 	Node* recordNode()
 	{
 
-		cout << "Recording Node: # child: " << N << endl;
+	//	cout << "Recording Node: # child: " << N << endl;
 		//  Construct the node in place on tape
 		Node* node = myNodes.emplace_back(N);
-		cout << "Tape: emplace: node address: " << node << endl;
+	//	cout << "Tape: emplace: node address: " << node << endl;
 
 		//  Store and zero the adjoint(s)
 		if (multi)
@@ -186,4 +212,6 @@ public:
 	{
 		return myNodes.find(node);
 	}
+
+
 };

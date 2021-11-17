@@ -56,6 +56,7 @@ class Node
 	//  Number of childs (arguments)
 	const size_t    n;
 
+
 public:
 
 	Node(const size_t N = 0) : n(N) 
@@ -79,7 +80,7 @@ public:
 	{
 		//  Nothing to propagate
 
-		cout << " Propagate One: " << this << endl;
+		//cout << " Propagate One: " << this << endl;
 		if (!n || !mAdjoint) return;
 
 		for (size_t i = 0; i < n; ++i)

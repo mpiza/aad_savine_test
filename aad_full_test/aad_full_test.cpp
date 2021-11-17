@@ -4,6 +4,7 @@
 #include <iostream>
 #include "aad.h"
 #include "black_scholes.h"
+#include "black_scholes_mc.h"
 
 
  // A simple Multiplier class
@@ -28,9 +29,17 @@ T f(T x[5])
 };
 
 template <class T>
-T f2(T x[5])
+T f2(T x[3])
 {
-	T y = x[2] * (5.0 * x[0] + x[1]);
+	T y = (x[1]*x[2] * (5.0 * x[0] + x[1]) + 3.5*x[0])*(x[0]*x[2])*x[0]*x[2]*(x[2] + x[0]);
+
+	return y;
+};
+
+template <class T>
+T f3(T x[2])
+{
+	T y = (5.0 * x[1] * 7.0 * x[2]);
 
 	return y;
 };
@@ -60,14 +69,14 @@ int test1()
 int test2()
 {
 	Number::tape->rewind();
-	Number x[5] = { Number(1.0), Number(2.0), Number(3.0), Number(4.0), Number(5.0) };
+	Number x[3] = { Number(2.0), Number(3.0), Number(4.0) };
 	Number yy = f2(x);
 
 	yy.propagateToStart();
 
 
 
-	for (size_t i = 0; i < 5; ++i)
+	for (size_t i = 0; i < 3; ++i)
 	{
 		cout << "a" << i << " = " << x[i].adjoint() << endl;
 	}
@@ -77,7 +86,27 @@ int test2()
 
 }
 
-int test3()
+int test4()
+{
+	Number::tape->rewind();
+	Number x[2] = {  Number(3.0), Number(4.0) };
+	Number yy = f3(x);
+
+	yy.propagateToStart();
+
+
+
+	for (size_t i = 0; i < 2; ++i)
+	{
+		cout << "a" << i << " = " << x[i].adjoint() << endl;
+	}
+
+	return 0;
+
+
+}
+
+int test_bs_analytic()
 {
 
 	Number::tape->rewind();
@@ -93,6 +122,8 @@ int test3()
 
 	price.propagateToStart();
 
+	cout << " Black Scholes Analytic " << endl; 
+
 	cout << "price " << price.value() << endl;
 	cout << "spot " << spot.value() << " spot_der " << spot.adjoint() << endl;
 	cout << "rate " << rate.value() << " rate_der " << rate.adjoint() << endl;
@@ -105,11 +136,98 @@ int test3()
 
 }
 
+
+int test_bs_mc()
+{
+
+	Number::tape->rewind();
+
+	Number spot(1.0);
+	Number rate(0.0);
+	Number vol(0.2);
+	Number strike(1.0);
+	Number mat(1.0);
+	Number price;
+	int num_sims = 1000000;
+
+	
+	price = monte_carlo_call_price(num_sims, spot, strike, rate, vol, mat);
+
+	price.propagateToStart();
+
+	cout << " Black Scholes Monte Carlo " << endl;
+
+	cout << "price " << price.value() << endl;
+	cout << "spot " << spot.value() << " spot_der " << spot.adjoint() << endl;
+	cout << "rate " << rate.value() << " rate_der " << rate.adjoint() << endl;
+	cout << "vol " << vol.value() << " vol_der " << vol.adjoint() << endl;
+	cout << "strike " << strike.value() << " strike_der " << strike.adjoint() << endl;
+	cout << "mat " << mat.value() << " mat_der " << mat.adjoint() << endl;
+
+	return 0;
+
+}
+
+int test_bs_all()
+{
+
+	Number::tape->rewind();
+
+	Number spot(1.0);
+	Number rate(0.0);
+	Number yield(0.0);
+	Number vol(0.2);
+	Number strike(1.0);
+	Number mat(1.0);
+	Number price;
+	price = blackScholes(spot, rate, yield, vol, strike, mat);
+
+	price.propagateToStart();
+
+	cout << " Black Scholes Analytic " << endl;
+
+	cout << "price " << price.value() << endl;
+	cout << "spot " << spot.value() << " spot_der " << spot.adjoint() << endl;
+	cout << "rate " << rate.value() << " rate_der " << rate.adjoint() << endl;
+	cout << "yield " << yield.value() << " yield_der " << yield.adjoint() << endl;
+	cout << "vol " << vol.value() << " vol_der " << vol.adjoint() << endl;
+	cout << "strike " << strike.value() << " strike_der " << strike.adjoint() << endl;
+	cout << "mat " << mat.value() << " mat_der " << mat.adjoint() << endl;
+
+	Number::tape->rewind();
+	int num_sims = 100000;
+
+	Number spot2(1.0);
+	Number rate2(0.0);
+	Number yield(0.0);
+	Number vol(0.2);
+	Number strike(1.0);
+	Number mat(1.0);
+	Number price;
+
+	price = monte_carlo_call_price(num_sims, spot, strike, rate, vol, mat);
+
+	price.propagateToStart();
+
+	cout << " Black Scholes Monte Carlo " << endl;
+
+	cout << "price " << price.value() << endl;
+	cout << "spot " << spot.value() << " spot_der " << spot.adjoint() << endl;
+	cout << "rate " << rate.value() << " rate_der " << rate.adjoint() << endl;
+	cout << "vol " << vol.value() << " vol_der " << vol.adjoint() << endl;
+	cout << "strike " << strike.value() << " strike_der " << strike.adjoint() << endl;
+	cout << "mat " << mat.value() << " mat_der " << mat.adjoint() << endl;
+
+	return 0;
+
+}
+
 int main()
 {
 	
-	test2();
-
+	//test_bs_analytic();
+	//test_bs_mc();
+	test_bs_all();
 
 	return 0;
 }

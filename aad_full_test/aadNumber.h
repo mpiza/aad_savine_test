@@ -27,21 +27,23 @@ As long as this comment is preserved at the top of the file
 #include "gaussian.h"
 
 
-
+enum oper {NUM, NPLUSL, NPLUSR, PLUS, NMINUSL, NMINUSR,MINUS, SUM, SUB, MULT,MULTR, DIV, DIVR, DIVL, POW, POWL, POWR, MAXR,
+	MAXL, MAX, MIN, MINL, MINR,SQRT,  FABS, LOG, EXP, NORMAL};
 
 class Number
 {
 	//  Value and node are the only data members
 	double myValue;
 	Node* myNode;
+	oper myOp;
 
 	//  Create node on tape
 	template <size_t N>
 	void createNode()
 	{
-		cout << "creating node on tape: N =  " << endl;
+		//cout << "creating node on tape: N =  " << N  << endl;
 		myNode = tape->recordNode<N>();
-		print_number_node(myNode);
+		//print_number_node(myNode);
 	}
 
 	//	Access node (friends only)
@@ -84,7 +86,7 @@ class Number
 		myValue(val)
 	{
 		createNode<1>();
-
+		myOp = NUM;
 		myNode->pAdjPtrs[0] = Tape::multi
 			? arg.pAdjoints
 			: &arg.mAdjoint;
@@ -121,6 +123,7 @@ public:
 	explicit Number(const double val) :
 		myValue(val)
 	{
+		myOp = NUM;
 		createNode<0>();
 	}
 
@@ -128,6 +131,7 @@ public:
 	Number& operator=(const double val)
 	{
 		myValue = val;
+		myOp = NUM;
 		createNode<0>();
 
 		return *this;
@@ -153,6 +157,16 @@ public:
 	{
 		return myValue;
 	}
+	oper&  op()
+	{
+		return myOp;
+	}
+	oper op() const
+	{
+		return myOp;
+	}
+
+
 	//  Single dimensional
 	double& adjoint()
 	{
@@ -250,16 +264,16 @@ public:
 		cout << " node: n = " << myNode->n;
 		cout << " node: nAdj = " << myNode->numAdj;
 
-		cout << " node: myAdjoint = " << myNode->mAdjoint;
+		cout << " node: myAdjoint = " << myNode->mAdjoint << endl;
 
 		if (myNode->n > 0) {
-			cout << "pDerv[0] : " << myNode->pDerivatives[0] << endl;
-			
-			
-			cout << " pAdjPtr[0] : " << myNode->pAdjPtrs[0];
+
+			cout << "pDerv[0] : " << (myNode->pDerivatives)[0] << endl;
+			cout << " pAdjPtr[0] : " << ((myNode->pAdjPtrs)[0]) << endl;
+
 			if (myNode->n > 1) {
-				cout << " pDerv[1] : " << myNode->pDerivatives[1];
-				cout << " pAdjPtr[1] : " << myNode->pAdjPtrs[1] << endl;
+				cout << " pDerv[1] : " << (myNode->pDerivatives)[1] << endl;
+				cout << " pAdjPtr[1] : " << ((myNode->pAdjPtrs))[1] << endl;
 			}
 
 			
@@ -276,6 +290,7 @@ public:
 		//  Eagerly compute derivatives
 		result.lDer() = 1.0;
 		result.rDer() = 1.0;
+		result.myOp = PLUS;
 
 		return result;
 	}
@@ -286,6 +301,7 @@ public:
 		Number result(lhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = 1.0;
+		result.myOp = NPLUSR;
 
 		return result;
 
@@ -303,7 +319,7 @@ public:
 		//  Eagerly compute derivatives
 		result.lDer() = 1.0;
 		result.rDer() = -1.0;
-
+		result.myOp = MINUS;
 		return result;
 	}
 	inline friend Number operator-(const Number& lhs, const double& rhs)
@@ -313,7 +329,7 @@ public:
 		Number result(lhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = 1.0;
-
+		result.myOp = NMINUSR;
 		return result;
 
 	}
@@ -324,6 +340,7 @@ public:
 		Number result(rhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = -1.0;
+		result.myOp = NMINUSL;
 
 		return result;
 	}
@@ -336,6 +353,7 @@ public:
 		//  Eagerly compute derivatives
 		result.lDer() = rhs.value();
 		result.rDer() = lhs.value();
+		result.myOp = MULT;
 
 		return result;
 	}
@@ -346,6 +364,7 @@ public:
 		Number result(lhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = rhs;
+		result.myOp = MULTR;
 
 		return result;
 
@@ -364,7 +383,7 @@ public:
 		const double invRhs = 1.0 / rhs.value();
 		result.lDer() = invRhs;
 		result.rDer() = -lhs.value() * invRhs * invRhs;
-
+		result.myOp = DIV;
 		return result;
 	}
 	inline friend Number operator/(const Number& lhs, const double& rhs)
@@ -374,7 +393,7 @@ public:
 		Number result(lhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = 1.0 / rhs;
-
+		result.myOp = DIVR;
 		return result;
 
 	}
@@ -385,7 +404,7 @@ public:
 		Number result(rhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = -lhs / rhs.value() / rhs.value();
-
+		result.myOp = DIVL;
 		return result;
 	}
 
@@ -397,7 +416,7 @@ public:
 		//  Eagerly compute derivatives
 		result.lDer() = rhs.value() * e / lhs.value();
 		result.rDer() = log(lhs.value()) * e;
-
+		result.myOp = POW;
 		return result;
 	}
 	inline friend Number pow(const Number& lhs, const double& rhs)
@@ -407,7 +426,7 @@ public:
 		Number result(lhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = rhs * e / lhs.value();
-
+		result.myOp = POWR;
 		return result;
 	}
 	inline friend Number pow(const double& lhs, const Number& rhs)
@@ -417,7 +436,7 @@ public:
 		Number result(rhs.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = log(lhs) * e;
-
+		result.myOp = POWL;
 		return result;
 	}
 
@@ -437,7 +456,7 @@ public:
 			result.lDer() = 0.0;
 			result.rDer() = 1.0;
 		}
-
+		result.myOp = MAX;
 		return result;
 	}
 	inline friend Number max(const Number& lhs, const double& rhs)
@@ -447,7 +466,7 @@ public:
 		Number result(lhs.node(), lmax ? lhs.value() : rhs);
 		//  Eagerly compute derivatives
 		result.derivative() = lmax ? 1.0 : 0.0;
-
+		result.myOp = MAXL;
 		return result;
 	}
 	inline friend Number max(const double& lhs, const Number& rhs)
@@ -457,7 +476,7 @@ public:
 		Number result(rhs.node(), rmax ? rhs.value() : lhs);
 		//  Eagerly compute derivatives
 		result.derivative() = rmax ? 1.0 : 0.0;
-
+		result.myOp = MAXR;
 		return result;
 	}
 
@@ -477,7 +496,7 @@ public:
 			result.lDer() = 0.0;
 			result.rDer() = 1.0;
 		}
-
+		result.myOp = MIN;
 		return result;
 	}
 	inline friend Number min(const Number& lhs, const double& rhs)
@@ -487,7 +506,7 @@ public:
 		Number result(lhs.node(), lmin ? lhs.value() : rhs);
 		//  Eagerly compute derivatives
 		result.derivative() = lmin ? 1.0 : 0.0;
-
+		result.myOp = MINL;
 		return result;
 	}
 	inline friend Number min(const double& lhs, const Number& rhs)
@@ -497,7 +516,7 @@ public:
 		Number result(rhs.node(), rmin ? rhs.value() : lhs);
 		//  Eagerly compute derivatives
 		result.derivative() = rmin ? 1.0 : 0.0;
-
+		result.myOp = MINR;
 		return result;
 	}
 
@@ -564,7 +583,7 @@ public:
 		Number result(arg.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = e;
-
+		result.myOp = EXP;
 		return result;
 	}
 
@@ -575,7 +594,7 @@ public:
 		Number result(arg.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = 1.0 / arg.value();
-
+		result.myOp = LOG;
 		return result;
 	}
 
@@ -586,7 +605,7 @@ public:
 		Number result(arg.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = 0.5 / e;
-
+		result.myOp = SQRT;
 		return result;
 	}
 
@@ -597,7 +616,7 @@ public:
 		Number result(arg.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = arg.value() > 0.0 ? 1.0 : -1.0;
-
+		result.myOp = FABS;
 		return result;
 	}
 
@@ -608,7 +627,7 @@ public:
 		Number result(arg.node(), e);
 		//  Eagerly compute derivatives
 		result.derivative() = -arg.value() * e;
-
+		result.myOp = NORMAL;
 		return result;
 	}
 
